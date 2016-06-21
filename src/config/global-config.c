@@ -105,6 +105,8 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
     const char *xml_prelude_log_level = "prelude_log_level";
     const char *xml_zeromq_output = "zeromq_output";
     const char *xml_zeromq_output_uri = "zeromq_uri";
+    const char *xml_zeromq_output_server_cert = "zeromq_server_cert";
+    const char *xml_zeromq_output_client_cert = "zeromq_client_cert";
     const char *xml_jsonout_output = "jsonout_output";
     const char *xml_stats = "stats";
     const char *xml_memorysize = "memory_size";
@@ -114,6 +116,7 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
 
     const char *xml_emailto = "email_to";
     const char *xml_emailfrom = "email_from";
+    const char *xml_emailreplyto = "email_reply_to";
     const char *xml_emailidsname = "email_idsname";
     const char *xml_smtpserver = "smtp_server";
     const char *xml_heloserver = "helo_server";
@@ -261,6 +264,14 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
             if (Config) {
                 Config->zeromq_output_uri = strdup(node[i]->content);
             }
+        } else if (strcmp(node[i]->element, xml_zeromq_output_server_cert) == 0) {
+            if (Config) {
+                Config->zeromq_output_server_cert = strdup(node[i]->content);
+            }
+        } else if (strcmp(node[i]->element, xml_zeromq_output_client_cert) == 0) {
+            if (Config) {
+                Config->zeromq_output_client_cert = strdup(node[i]->content);
+            }
         }
         /* jsonout output */
         else if (strcmp(node[i]->element, xml_jsonout_output) == 0) {
@@ -403,7 +414,7 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
         }
 
         /* For the email now
-         * email_to, email_from, idsname, smtp_Server and maxperhour.
+         * email_to, email_from, email_replyto, idsname, smtp_Server and maxperhour.
          * We will use a separate structure for that.
          */
         else if (strcmp(node[i]->element, xml_emailto) == 0) {
@@ -430,6 +441,13 @@ int Read_Global(XML_NODE node, void *configp, void *mailp)
                     free(Mail->from);
                 }
                 os_strdup(node[i]->content, Mail->from);
+            }
+        } else if (strcmp(node[i]->element, xml_emailreplyto) == 0) {
+            if (Mail) {
+                if (Mail->reply_to) {
+                    free(Mail->reply_to);
+                }
+                os_strdup(node[i]->content, Mail->reply_to);
             }
         } else if (strcmp(node[i]->element, xml_emailidsname) == 0) {
             if (Mail) {

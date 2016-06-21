@@ -24,6 +24,7 @@
 #define RCPTTO              "Rcpt To: <%s>\r\n"
 #define DATAMSG             "DATA\r\n"
 #define FROM                "From: OSSEC HIDS <%s>\r\n"
+#define REPLYTO             "Reply-To: OSSEC HIDS <%s>\r\n"
 #define TO                  "To: <%s>\r\n"
 #define CC                  "Cc: <%s>\r\n"
 #define SUBJECT             "Subject: %s\r\n"
@@ -45,7 +46,7 @@
 #define MAIL_DEBUG(x,y,z) if(MAIL_DEBUG_FLAG) merror(x,y,z)
 
 
-int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, char *idsname, FILE *fp, const struct tm *p)
+int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, char *replyto, char *idsname, FILE *fp, const struct tm *p)
 {
     FILE *sendmail = NULL;
     int socket = -1, i = 0;
@@ -173,7 +174,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
     snprintf(snd_msg, 127, TO, to[0]);
 
     if (sendmail) {
-        fprintf(sendmail, snd_msg);
+        fprintf(sendmail, "%s", snd_msg);
     } else {
         OS_SendTCP(socket, snd_msg);
     }
@@ -182,8 +183,14 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
     snprintf(snd_msg, 127, FROM, from);
 
     if (sendmail) {
-        fprintf(sendmail, snd_msg);
+        fprintf(sendmail, "%s", snd_msg);
     } else {
+        OS_SendTCP(socket, snd_msg);
+    }
+
+    if (replyto) {
+        memset(snd_msg, '\0', 128);
+        snprintf(snd_msg, 127, REPLYTO, replyto);
         OS_SendTCP(socket, snd_msg);
     }
 
@@ -199,7 +206,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
             snprintf(snd_msg, 127, TO, to[i]);
 
             if (sendmail) {
-                fprintf(sendmail, snd_msg);
+                fprintf(sendmail, "%s", snd_msg);
             } else {
                 OS_SendTCP(socket, snd_msg);
             }
@@ -219,7 +226,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
 #endif
 
     if (sendmail) {
-        fprintf(sendmail, snd_msg);
+        fprintf(sendmail, "%s", snd_msg);
     } else {
         OS_SendTCP(socket, snd_msg);
     }
@@ -230,7 +237,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
         snprintf(snd_msg, 127, XHEADER, idsname);
 
         if (sendmail) {
-            fprintf(sendmail, snd_msg);
+            fprintf(sendmail, "%s", snd_msg);
         } else {
             OS_SendTCP(socket, snd_msg);
         }
@@ -241,7 +248,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
     snprintf(snd_msg, 127, SUBJECT, subject);
 
     if (sendmail) {
-        fprintf(sendmail, snd_msg);
+        fprintf(sendmail, "%s", snd_msg);
         fprintf(sendmail, ENDHEADER);
     } else {
         OS_SendTCP(socket, snd_msg);
@@ -252,7 +259,7 @@ int OS_SendCustomEmail(char **to, char *subject, char *smtpserver, char *from, c
     fseek(fp, 0, SEEK_SET);
     while (fgets(buffer, 2048, fp) != NULL) {
         if (sendmail) {
-            fprintf(sendmail, buffer);
+            fprintf(sendmail, "%s", buffer);
         } else {
             OS_SendTCP(socket, buffer);
         }
